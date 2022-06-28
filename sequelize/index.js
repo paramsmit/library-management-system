@@ -11,6 +11,12 @@ const models = {
     book : require('./models/book.model')(sequelize, DataTypes)
 }
 
+Object.keys(models).forEach((modelName) => {
+    if('associate' in models[modelName]){
+        models[modelName].associate(models);
+    }
+})
+
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;
 

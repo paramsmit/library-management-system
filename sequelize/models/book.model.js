@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
 			unique: true,
 		},
 	});
+
+	book.associate = (models) => {
+		book.belongsTo(models.member);
+	}
 	
 	return book;
 };
