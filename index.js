@@ -1,8 +1,6 @@
-const models = require('./sequelize');
-const express = require('express');
-const app = express();
-const PORT = 3000;
+const app = require('./express/app.js')
 
+const PORT = 3000;
 app.listen(PORT, (e) => {
     if(!e)
         console.log("Server is Successfully Running, and App is listening on port "+ PORT)
