@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-	const member = sequelize.define('members', {
+	const librarian = sequelize.define('librarians', {
 		id: {
 			allowNull: false,
 			autoIncrement: true,
@@ -8,9 +8,9 @@ module.exports = (sequelize, DataTypes) => {
 		},
 		name: {
 			allowNull: false,
-			type: DataTypes.STRING
+			type: DataTypes.STRING,
 		},
-		contact: {
+        contact: {
             allowNull: true,
             type: DataTypes.INTEGER
         },
@@ -20,10 +20,9 @@ module.exports = (sequelize, DataTypes) => {
         }
 	});
 
-	member.associate = (models) => {
-		member.hasMany(models.bookItem);
-		member.belongsTo(models.account);
+	librarian.associate = (models) => {
+		librarian.belongsTo(models.account);
 	}
 	
-	return member;
+	return librarian;
 };

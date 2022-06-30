@@ -10,15 +10,34 @@ module.exports = (sequelize, DataTypes) => {
 			primaryKey: true,
 			type: DataTypes.INTEGER
 		},
-		name: {
+		isbn: {
+			allowNull: false,
+			unique: true,
+			type: DataTypes.UUID,
+			defaultValue: DataTypes.UUIDV4
+		},
+		title: {
 			allowNull: false,
 			type: DataTypes.STRING,
 			unique: true,
 		},
+		author: {
+			allowNull: true,
+			type: DataTypes.STRING
+		},
+		publisher: {
+			allowNull: true,
+			type: DataTypes.STRING
+		},
+		pageCount: {
+			allowNull: true,
+			type: DataTypes.INTEGER,
+			field: 'page_count'
+		}
 	});
 
 	book.associate = (models) => {
-		book.belongsTo(models.member);
+		book.hasMany(models.bookItem);
 	}
 	
 	return book;
