@@ -19,7 +19,11 @@ module.exports = (sequelize, DataTypes) => {
         password: {
             allowNull: false,
             type: DataTypes.STRING
-        }
+        },
+		role : {
+			type: DataTypes.ENUM('ADMIN','USER'),
+			defaultValue : 'USER'
+		}
 	});
 
 	account.associate = (models) => {
