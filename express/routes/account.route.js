@@ -1,4 +1,4 @@
-const { create, getById, getByUsername } = require('./../services/account.service');
+const { create, getById, getByUsername, removeById, removeByUsername } = require('./../services/account.service');
 const express = require('express');
 const jwt = require('jsonwebtoken')
 const {authorization} = require('./../auth/authorization');
@@ -62,5 +62,27 @@ accountRouter.post('/login', async (req, res, next) => {
     }
 })
 
+accountRouter.delete('/remove', authorization, async (req,res) => {
+    
+    // member can remove it
+    // librarian can also remove it by getting the userid
+    // before removing it, we have to check that if any book is pending or not owned by the user                                                                                                                                                                
+    
+    try{
+        if(req.body.id){
+            const response = await removeById(req.body.id);
+            console.log(response);
+            // don't know what will be the response of the delete operation 
+            // so printed it. 
+            // later implement this api
+        } 
+        else if(req.body.username) {
+            const response = await removeByUsername(req.body.username);
+            console.log(response);
+        }
+    } catch(e) {
+        throw e;
+    }
+})
 
 module.exports = accountRouter

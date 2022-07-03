@@ -1,12 +1,25 @@
 const models = require('../../sequelize');
 
 async function get(){
-
-}
-
-async function remove(){
     
 }
+
+async function removeById(id){
+    try{
+        return await models.account.destroy({ where: {id: id} });          
+    } catch (e) {
+        throw e;
+    }
+}
+
+async function removeByUsername(username){
+    try{
+        return await models.account.destroy({ where: {username: username} });          
+    } catch (e) {
+        throw e;
+    }
+}
+
 
 async function getById(id){
     try{
@@ -40,5 +53,6 @@ module.exports = {
     getById,
     getByUsername,
     create,
-    remove
+    removeByUsername,
+    removeById
 }
