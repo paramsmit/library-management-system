@@ -1,54 +1,79 @@
-const models = require('../../sequelize');
-const { getIdParam } = require('../helpers');
+const express = require('express');
+const { authorization } = require('./../auth/authorization');
+const { create, update, getById, getByUsername, removeById, removeByUsername } = require('./../services/member.service');
 
-async function getAll(req, res) {
-	const members = await models.member.findAll();
-	res.status(200).json(members);
-};
+const memberRouter = express.Router();
 
-async function getById(req, res) {
-	const id = getIdParam(req);
-	const member = await models.member.findByPk(id);
-	if (member) {
-		res.status(200).json(member);
-	} else {
-		res.status(404).send('404 - Not found');
-	}
-};
+memberRouter.get('/', authorization, async (req, res) => {
+    try{
 
-async function create(req, res) {
-	if (req.body.id) {
-		res.status(400).send(`Bad request: ID should not be provided, since it is determined automatically by the database.`)
-	} else {
-		await models.member.create(req.body);
-		res.status(201).end();
-	}
-};
+    } catch (e) {
 
-async function update(req, res) {
-	const id = getIdParam(req);
-	await models.member.update(req.body, {
-		where: {
-			id: id
-		}
-	});
-	res.status(200).end();
-};
+    }
+})
 
-async function remove(req, res) {
-	const id = getIdParam(req);
-	await models.member.destroy({
-		where: {
-			id: id
-		}
-	});
-	res.status(200).end();
-};
 
-module.exports = {
-	getAll,
-	getById,
-	create,
-	update,
-	remove,
-};
+memberRouter.get('/:id', authorization, async (req , res) => {
+    try{
+        const member = await getById(req.params.id);
+        if(!member) {
+            res.status(404).send("cannot find the member profile with the given member id");
+        }
+        const resbody = member.dataValues;
+        res.status(200).send(resbody);
+    } catch (e) {
+        throw e;
+    }
+})
+
+memberRouter.post('/', authorization, async (req, res) => {
+    try{        
+        const member = await create(req.body);
+        // connect with account
+        // pass account id in the body
+        res.status(201).send({id : member.dataValues.id});
+    } catch (e) {
+        res.status(400).send(e.message);
+    }
+})
+
+memberRouter.put('/:id', authorization, async (req,res) => {
+    const fieldsToUpdate = {
+        name,
+        contact,
+        email
+    } = req.body
+
+    for (const [key, value] of Object.entries(fieldsToUpdate)) {
+        if(fieldsToUpdate[key] === undefined || fieldsToUpdate[key] === null){
+            delete fieldsToUpdate[key]
+        }
+    }
+
+    // also some validation in future checking datatypes and schema 
+
+    try{
+        const member = await update(req.params.id,fieldsToUpdate);
+        res.status(201).send(member);
+    } catch (e) {
+        res.status(400).send(e.message);
+    }
+})
+
+memberRouter.delete('/:id', authorization, async (req, res) => {
+    try{
+        
+    } catch (e) {
+
+    }
+})
+
+// update only name, contact and email 
+
+// user can't delete the profile because it is asscociated with bookItems
+// admin can 
+
+// get all the profiles is accessable by the admin 
+
+module.exports = memberRouter
+

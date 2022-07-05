@@ -22,8 +22,15 @@ module.exports = (sequelize, DataTypes) => {
 
 	member.associate = (models) => {
 		member.hasMany(models.bookItem);
-		member.belongsTo(models.account);
+		member.belongsTo(models.account, { 
+			foreignKey: {
+				name: 'account_id',
+				unique: true,
+				allowNull : false
+			}
+		});
 	}
-	
+
+
 	return member;
 };

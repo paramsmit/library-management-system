@@ -12,8 +12,10 @@ accountRouter.get("/logout", authorization, async (req, res) => {
 accountRouter.get('/:id', authorization, async (req , res, next) => {
     try{
         const account = await getById(req.params.id);
+        console.log(await account.getMember().dataValues);
+
         if(!account) {
-            res.status(404).send("cannot find the acccount with the given user id");
+            res.status(404).send("cannot find the account with the given user id");
         }
         const resbody = account.dataValues;
         delete resbody['role'];
