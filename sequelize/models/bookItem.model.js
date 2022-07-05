@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
 
 	bookItem.associate = (models) => {
 		bookItem.belongsTo(models.book);
-        bookItem.belongsTo(models.member);
+        bookItem.belongsTo(models.profile);
 	}
 	
 	return bookItem;

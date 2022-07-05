@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-	const librarian = sequelize.define('librarians', {
+	const profile = sequelize.define('profiles', {
 		id: {
 			allowNull: false,
 			autoIncrement: true,
@@ -8,9 +8,9 @@ module.exports = (sequelize, DataTypes) => {
 		},
 		name: {
 			allowNull: false,
-			type: DataTypes.STRING,
+			type: DataTypes.STRING
 		},
-        contact: {
+		contact: {
             allowNull: true,
             type: DataTypes.INTEGER
         },
@@ -20,8 +20,9 @@ module.exports = (sequelize, DataTypes) => {
         }
 	});
 
-	librarian.associate = (models) => {
-		librarian.belongsTo(models.account, {
+	profile.associate = (models) => {
+		profile.hasMany(models.bookItem);
+		profile.belongsTo(models.account, { 
 			foreignKey: {
 				name: 'account_id',
 				unique: true,
@@ -29,6 +30,7 @@ module.exports = (sequelize, DataTypes) => {
 			}
 		});
 	}
-	
-	return librarian;
+
+
+	return profile;
 };

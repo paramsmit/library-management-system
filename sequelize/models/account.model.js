@@ -27,14 +27,7 @@ module.exports = (sequelize, DataTypes) => {
 	});
 
 	account.associate = (models) => {
-		account.hasOne(models.member, { 
-			foreignKey: {
-				name: 'account_id',
-				unique: true,
-				allowNull : false
-			}
-		});
-        account.hasOne(models.librarian, {
+		account.hasOne(models.profile, { 
 			foreignKey: {
 				name: 'account_id',
 				unique: true,
