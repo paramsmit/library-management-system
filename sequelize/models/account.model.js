@@ -34,7 +34,13 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull : false
 			}
 		});
-        account.hasOne(models.librarian);
+        account.hasOne(models.librarian, {
+			foreignKey: {
+				name: 'account_id',
+				unique: true,
+				allowNull : false
+			}
+		});
 	}
 
 	return account;

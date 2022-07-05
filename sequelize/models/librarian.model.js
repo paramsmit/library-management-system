@@ -21,7 +21,13 @@ module.exports = (sequelize, DataTypes) => {
 	});
 
 	librarian.associate = (models) => {
-		librarian.belongsTo(models.account);
+		librarian.belongsTo(models.account, {
+			foreignKey: {
+				name: 'account_id',
+				unique: true,
+				allowNull : false
+			}
+		});
 	}
 	
 	return librarian;
