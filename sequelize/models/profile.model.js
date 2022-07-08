@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
 		profile.hasMany(models.bookItem);
 		profile.belongsTo(models.account, { 
 			foreignKey: {
-				name: 'account_id',
+				name: 'accountId',
 				unique: true,
 				allowNull : false
 			}

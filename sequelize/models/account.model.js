@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
 	account.associate = (models) => {
 		account.hasOne(models.profile, { 
 			foreignKey: {
-				name: 'account_id',
+				name: 'accountId',
 				unique: true,
 				allowNull : false
 			}
