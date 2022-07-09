@@ -1,54 +1,117 @@
-const models = require('../../sequelize');
-const { getIdParam } = require('../helpers');
+const express = require('express');
+const { authorization } = require('../auth/authorization');
+const { create, update, getById } = require('../services/book.service');
 
-async function getAll(req, res) {
-	const books = await models.book.findAll();
-	res.status(200).json(books);
-};
+const bookRouter = express.Router();
 
-async function getById(req, res) {
-	const id = getIdParam(req);
-	const book = await models.book.findByPk(id);
-	if (book) {
-		res.status(200).json(book);
-	} else {
-		res.status(404).send('404 - Not found');
-	}
-};
+bookRouter.get('/', authorization, async (req, res) => {
+	try{	
+    } catch (e) {
 
-async function create(req, res) {
-	if (req.body.id) {
-		res.status(400).send(`Bad request: ID should not be provided, since it is determined automatically by the database.`)
-	} else {
-		await models.book.create(req.body);
-		res.status(201).end();
-	}
-};
+    }
+})
 
-async function update(req, res) {
-	const id = getIdParam(req);
-	await models.book.update(req.body, {
-		where: {
-			id: id
+bookRouter.get('/getById/:id', authorization, async (req , res) => {
+    try{
+        const book = await getById(req.params.id);
+        if(!book) {
+            res.status(404).send("cannot find the profile with the given book id");
+        }
+        const resbody = book.dataValues;
+        res.status(200).send(resbody);
+    } catch (e) {
+        throw e;
+    }
+})
+
+bookRouter.get('/getByIsbn/:isbn', authorization, async (req , res) => {
+    try{
+        const book = await getByIsbn(req.params.isbn);
+        if(!book) {
+            res.status(404).send("cannot find the book with the given book isbn");
+        }
+        const resbody = book.dataValues;
+        res.status(200).send(resbody);
+    } catch (e) {
+        throw e;
+    }
+})
+
+bookRouter.get('/getByTitle/:title', authorization, async (req , res) => {
+    try{
+        const book = await getByTitle(req.params.title);
+        if(!book) {
+            res.status(404).send("cannot find the book with the given book id");
+        }
+        const resbody = book.dataValues;
+        res.status(200).send(resbody);
+    } catch (e) {
+        throw e;
+    }
+})
+
+
+
+bookRouter.post('/', authorization, async (req, res) => {
+    try{
+		
+		if(req.user.role !== 'ADMIN'){
+			res.status(403).send();
+			return;
 		}
-	});
-	res.status(200).end();
-};
+		
+        const book = await create(req.body);
+        res.status(201).send({id : book.dataValues.id});
+    } catch (e) {
+        res.status(400).send(e.message);
+    }
+})
 
-async function remove(req, res) {
-	const id = getIdParam(req);
-	await models.book.destroy({
-		where: {
-			id: id
+bookRouter.put('/:id', authorization, async (req,res) => {
+	
+	if(req.user.role !== 'ADMIN'){
+		res.status(403).send();
+		return;
+	}
+
+	const fieldsToUpdate = {
+		isbn, 
+		title,
+		author,
+		publisher,
+		pageCount
+    } = req.body
+
+	const nonNullAbleFields = ["isbn", "title"];
+
+	for(field in nonNullAbleFields){
+		if(fieldsToUpdate[field] === null){
+			res.status(400).send(field + ' must not be null in the request');
+			return;
 		}
-	});
-	res.status(200).end();
-};
+	}
 
-module.exports = {
-	getAll,
-	getById,
-	create,
-	update,
-	remove,
-};
+    for (const [key, value] of Object.entries(fieldsToUpdate)) {
+        if(fieldsToUpdate[key] === undefined){
+            delete fieldsToUpdate[key]
+        }
+    }
+
+    try{
+        const book = await update(req.params.id,fieldsToUpdate);
+        res.status(201).send(book);
+    } catch (e) {
+        res.status(400).send(e.message);
+    }
+})
+
+bookRouter.delete('/:id', authorization, async (req, res) => {
+    try{
+        
+    } catch (e) {
+
+    }
+})
+
+module.exports = bookRouter
+
