@@ -14,7 +14,7 @@ profileRouter.get('/', authorization, async (req, res) => {
 
 profileRouter.get('/:accountId', authorization, async (req , res) => {
     try{
-        const profile = await getByAccountId (req.params.accountId);
+        const profile = await getByAccountId(req.params.accountId);
         if(!profile) {
             res.status(404).send("cannot find the profile with the given account id");
         }
@@ -27,6 +27,8 @@ profileRouter.get('/:accountId', authorization, async (req , res) => {
 
 profileRouter.get('/getById/:id', authorization, async (req , res) => {
     try{
+
+        // null check 
         const profile = await getById(req.params.id);
         if(!profile) {
             res.status(404).send("cannot find the profile with the given profile id");

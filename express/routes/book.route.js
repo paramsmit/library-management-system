@@ -107,9 +107,7 @@ bookRouter.put('/:id', authorization, async (req,res) => {
 
 bookRouter.delete('/:id', authorization, async (req, res) => {
     try{
-        
     } catch (e) {
-
     }
 })
 

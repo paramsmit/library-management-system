@@ -1,24 +1,22 @@
-const { create, getById, getByUsername, removeById, removeByUsername } = require('./../services/account.service');
+const { create, getById, getByUsername, removeById } = require('./../services/account.service');
 const express = require('express');
 const jwt = require('jsonwebtoken')
 const {authorization} = require('./../auth/authorization');
 
-let accountRouter = express.Router();
+const accountRouter = express.Router();
 
 accountRouter.get("/logout", authorization, async (req, res) => {
     res.clearCookie("access_token").status(200).send("Successfully logged out");
-  });
+});
   
-accountRouter.get('/:id', authorization, async (req , res, next) => {
+accountRouter.get('/:id', authorization, async (req, res, next) => {
     try{
         const account = await getById(req.params.id);
-        console.log(await account.getMember().dataValues);
-
         if(!account) {
             res.status(404).send("cannot find the account with the given user id");
         }
         const resbody = account.dataValues;
-        delete resbody['role'];
+        // delete resbody['role'];
         res.status(200).send(resbody);
     } catch (e) {
         throw e;
@@ -26,7 +24,7 @@ accountRouter.get('/:id', authorization, async (req , res, next) => {
 })
 
 accountRouter.post('/', async (req, res, next) => {
-    try{
+    try {
         const account = await create(req.body);
         res.status(201).send({id : account.dataValues.id});
     } catch (e) {
@@ -45,7 +43,7 @@ accountRouter.post('/login', async (req, res, next) => {
     
         if(!account){
             res.statusCode(403).send("can't find the user with the given username");
-            next();
+            next(); // or just return
         }
 
         const password = account.dataValues.password;
@@ -65,23 +63,31 @@ accountRouter.post('/login', async (req, res, next) => {
 })
 
 accountRouter.delete('/remove', authorization, async (req,res) => {
-    
-    // member can remove it
-    // librarian can also remove it by getting the userid
-    // before removing it, we have to check that if any book is pending or not owned by the user                                                                                                                                                                
-    
+
+    // user and admin both can delete it for now
+
     try{
-        if(req.body.id){
-            const response = await removeById(req.body.id);
-            console.log(response);
-            // don't know what will be the response of the delete operation 
-            // so printed it. 
-            // later implement this api
-        } 
-        else if(req.body.username) {
-            const response = await removeByUsername(req.body.username);
-            console.log(response);
+        if(!req.body.id){
+            res.status(400).send();
+            return;
         }
+
+        // not the most optimal code but can work for now
+        const account = await getById(req.body.id)
+        const profile = await account.getProfile();
+        const bookItems = await profile.getBookItems();
+
+        for(const bookItem of bookItems){
+            if(bookItem.dataValues.status == 'LOANED'){
+                res.status(403).send("can't delete the account when owned the book");
+                return;
+            }
+        }
+        
+        const response = await removeById(req.body.id);
+        // response seems like number of rows
+        res.status(200).send("account deleted successfully");
+
     } catch(e) {
         throw e;
     }

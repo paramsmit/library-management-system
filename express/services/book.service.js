@@ -21,8 +21,8 @@ async function getById(id){
 
 async function getByIsbn(isbn){
     try{
-        const profile = await models.book.findOne({ where: { isbn: isbn } });
-        return profile;
+        const book = await models.book.findOne({ where: { isbn: isbn } });
+        return book;
     } catch (e) {
         throw e;
     }
@@ -30,8 +30,8 @@ async function getByIsbn(isbn){
 
 async function getByTitle(title){
     try{
-        const profile = await models.book.findOne({ where: { title: title } });
-        return profile;
+        const book = await models.book.findOne({ where: { title: title } });
+        return book;
     } catch (e) {
         throw e;
     }
@@ -47,7 +47,7 @@ async function create(body){
 
 async function update(id, fieldsToUpdate){
     try{
-        return await models.profile.update(fieldsToUpdate, { where: { id: id } , returning: true} );
+        return await models.book.update(fieldsToUpdate, { where: { id: id } , returning: true} );
     } catch (e) {
         throw e;
     }

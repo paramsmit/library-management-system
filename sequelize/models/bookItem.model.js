@@ -6,21 +6,13 @@ module.exports = (sequelize, DataTypes) => {
 			primaryKey: true,
 			type: DataTypes.INTEGER
 		},
-
-		name: {
-			allowNull: false,
-			type: DataTypes.STRING,
-			unique: true,
-		},
         
         borrowedDate: {
             type: DataTypes.DATE,
-            field: 'borrowed_date'
         },
 
         dueDate: {
             type: DataTypes.DATE,
-            field: 'due_date'
         },
 
         status: {

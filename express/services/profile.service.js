@@ -22,7 +22,7 @@ async function getById(id){
 
 async function getByAccountId(accountId){
     try{
-        const profile = await models.profile.findOne({ where: { account_id: accountId } });
+        const profile = await models.profile.findOne({ where: { accountId: accountId } });
         return profile;
     } catch (e) {
         throw e;
