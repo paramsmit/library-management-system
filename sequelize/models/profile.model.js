@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.STRING
 		},
 		contact: {
-            allowNull: true,
+            allowNull: false,
             type: DataTypes.INTEGER
         },
         email: {
-            allowNull: true,
+            allowNull: false,
             type: DataTypes.STRING
         }
 	});

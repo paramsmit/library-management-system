@@ -9,7 +9,7 @@ accountRouter.get("/logout", authorization, async (req, res) => {
     res.clearCookie("access_token").status(200).send("Successfully logged out");
 });
   
-accountRouter.get('/:id', authorization, async (req, res, next) => {
+accountRouter.get('/:id', authorization, async (req, res) => {
     try{
         const account = await getById(req.params.id);
         if(!account) {
@@ -23,7 +23,7 @@ accountRouter.get('/:id', authorization, async (req, res, next) => {
     }
 })
 
-accountRouter.post('/', async (req, res, next) => {
+accountRouter.post('/', async (req, res) => {
     try {
         const account = await create(req.body);
         res.status(201).send({id : account.dataValues.id});
@@ -32,7 +32,7 @@ accountRouter.post('/', async (req, res, next) => {
     }
 })
 
-accountRouter.post('/login', async (req, res, next) => {
+accountRouter.post('/login', async (req, res) => {
     try{
         const creds = {
             username : req.body.username,
@@ -43,19 +43,21 @@ accountRouter.post('/login', async (req, res, next) => {
     
         if(!account){
             res.statusCode(403).send("can't find the user with the given username");
-            next(); // or just return
+            return;
         }
 
         const password = account.dataValues.password;
         
         if(creds.password !== password){
             res.statusCode(403).send("invalid password for the given user");
-            next();
+            return;
         }
 
         const token = jwt.sign({ id: account.dataValues.id, role: account.dataValues.role }, "secret_key");
-        res.cookie('access_token', token,  { expires: new Date(Date.now() + 3600000), httpOnly: true }).status(200).send("logged in successfully");
-        next();
+        
+        res.cookie('access_token', token,  { expires: new Date(Date.now() + 3600000), httpOnly: true })
+        .status(200)
+        .send("logged in successfully");
 
     } catch (e) {
         res.status(403).send();

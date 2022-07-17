@@ -1,15 +1,12 @@
 const express = require('express');
 const { authorization } = require('../auth/authorization');
-const { create, update, getById } = require('../services/book.service');
+const { create, update, getById, removeById } = require('../services/book.service');
 
 const bookRouter = express.Router();
 
-bookRouter.get('/', authorization, async (req, res) => {
-	try{	
-    } catch (e) {
-
-    }
-})
+// bookRouter.get('/', authorization, async (req, res) => {
+// 	try{} catch (e) {}
+// })
 
 bookRouter.get('/getById/:id', authorization, async (req , res) => {
     try{
@@ -98,7 +95,7 @@ bookRouter.put('/:id', authorization, async (req,res) => {
     }
 
     try{
-        const book = await update(req.params.id,fieldsToUpdate);
+        const book = await update(req.params.id, fieldsToUpdate);
         res.status(201).send(book);
     } catch (e) {
         res.status(400).send(e.message);
@@ -107,7 +104,22 @@ bookRouter.put('/:id', authorization, async (req,res) => {
 
 bookRouter.delete('/:id', authorization, async (req, res) => {
     try{
+
+        const book = await getById(req.params.id);
+        const bookItems = await book.getBookItems();
+        
+        for(const bookItem of bookItems){
+            if(bookItem.dataValues.status == 'LOANED'){
+                res.status(403).send("can't delete the book when bookItem is owned");
+                return;
+            }
+        }
+
+        const response = await removeById(req.params.id);
+        res.status(200).send("book successfully deleted");
+
     } catch (e) {
+        throw e; 
     }
 })
 

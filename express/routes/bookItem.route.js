@@ -9,11 +9,11 @@ const addDays = (date, days) => {
 
 const bookItem = express.Router();
 
-bookItem.get('/', authorization, async (req, res) => {
-	try{
-    } catch (e) {
-    }
-})
+// implement when it is required
+
+// bookItem.get('/', authorization, async (req, res) => {
+//     try{} catch (e) {}
+// })
 
 bookItem.get('/getById/:id', authorization, async (req , res) => {
     try{

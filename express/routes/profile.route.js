@@ -1,16 +1,12 @@
 const express = require('express');
 const { authorization } = require('../auth/authorization');
-const { create, update, getById, getByAccountId } = require('../services/profile.service');
+const { create, update, getById, getByAccountId, removeById } = require('../services/profile.service');
 
 const profileRouter = express.Router();
 
-profileRouter.get('/', authorization, async (req, res) => {
-    try{
-
-    } catch (e) {
-
-    }
-})
+// profileRouter.get('/', authorization, async (req, res) => {
+//     try{} catch (e) {}
+// })
 
 profileRouter.get('/:accountId', authorization, async (req , res) => {
     try{
@@ -76,9 +72,21 @@ profileRouter.put('/:id', authorization, async (req,res) => {
 
 profileRouter.delete('/:id', authorization, async (req, res) => {
     try{
-        
-    } catch (e) {
+        const profile = await getById(req.params.id);
+        // null check
+        const bookItems = await profile.getBookItems();
 
+        for(const bookItem of bookItems){
+            if(bookItem.dataValues.status == 'LOANED'){
+                res.status(403).send("can't delete the account when owned the book");
+                return;
+            }
+        }
+        
+        const response = await removeById(req.params.id);
+        res.status(200).send("profile deleted successfully");
+    } catch (e) {
+        res.status(400).send(e.message);
     }
 })
 
