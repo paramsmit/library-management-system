@@ -2,6 +2,19 @@ const express = require('express');
 const { authorization } = require('../auth/authorization');
 const { create, update, getById, removeById } = require('../services/bookItem.service');
 
+const { createBookItemSchema } = require('./../validations/createBookItemSchema');
+const { updateBookItemSchema } = require('./../validations/updateBookItemSchema');
+
+const { Validator } = require('express-json-validator-middleware');
+const { validate } = new Validator();
+
+const {
+    NotFoundError, 
+    DatabaseError, 
+    ForbiddenRequestError, 
+    BadRequestError
+} = require('./../errorHandling/errors');
+
 const addDays = (date, days) => {
     const newDate = new Date(date);
     return newDate.setDate(newDate.getDate() + days);
@@ -15,11 +28,17 @@ const bookItem = express.Router();
 //     try{} catch (e) {}
 // })
 
-bookItem.get('/getById/:id', authorization, async (req , res) => {
+bookItem.get('/getById/:id', authorization, async (req, res, next) => {
     try{
+
+        if(!req.params.id){
+            return next(new BadRequestError('required field id'));
+        }
+
         const bookItem = await getById(req.params.id);
+        
         if(!bookItem) {
-            res.status(404).send("cannot find the bookItem with the given id");
+            return next(new NotFoundError("cannot find the bookItem with the given id"));
         }
 
         // check for bookId always
@@ -27,42 +46,40 @@ bookItem.get('/getById/:id', authorization, async (req , res) => {
         const resbody = bookItem.dataValues;
         res.status(200).send(resbody);
     } catch (e) {
-        throw e;
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 
-bookItem.post('/', authorization, async (req, res) => {
-    try{
-            
-			if(req.user.role !== 'ADMIN'){
-				res.status(403).send();
-				return;
-			}
+bookItem.
+post('/', 
+    authorization,
+    validate({body : createBookItemSchema}),
+    async (req, res, next) => {
+        try{
+                
+            if(req.user.role !== 'ADMIN'){
+                return next(new ForbiddenRequestError("request denied for create book item"))
+            }
 
-			// when creating new bootItem
-			// dueDate and borrwedDate will be null and status will always be AVAILABLE            
-
-        const bookItem = await create(req.body);
-        res.status(201).send({id : bookItem.dataValues.id});
-    } catch (e) {
-        res.status(400).send(e.message);
+            const bookItem = await create(req.body);
+            res.status(201).send({id : bookItem.dataValues.id});
+        } catch (e) {
+            return next(new DatabaseError("Internal Server Error"));
+        }
     }
-})
+)
 
-bookItem.put('/:id', authorization, async (req,res) => {
-
-	if(req.user.role !== 'ADMIN'){
-		res.status(403).send();
-		return;
-	}
-    
-    // const fieldsToUpdate = {
-    //     "status" : "",
-    //     "borrowedDate" : "" ,
-    //     "dueDate" : "",
-    //     "profileId" : req.body.profileId,
-    //     "bookId": req.body.bookId
-    // }
+bookItem
+.put('/:id', 
+    authorization, 
+    (req,res,next) => {
+        if(req.user.role !== 'ADMIN'){
+            return next(new ForbiddenRequestError("request denied for update book item"))
+        }
+        return next();
+    },
+    validate({body : updateBookItemSchema}),
+    async (req, res, next) => {
 
     const fieldsToUpdate = {};
 
@@ -87,7 +104,6 @@ bookItem.put('/:id', authorization, async (req,res) => {
             fieldsToUpdate.dueDate = null;
             fieldsToUpdate.profileId = null;
             break;
-        
 
         case 'LOST':
             fieldsToUpdate.status = 'LOST';
@@ -95,41 +111,35 @@ bookItem.put('/:id', authorization, async (req,res) => {
             fieldsToUpdate.dueDate = null;
             fieldsToUpdate.profileId = null;
             break;
-
-        default: 
-            res.status(400).send();
-            return;
     }
 
     try{
         const bookItem = await update(req.params.id,fieldsToUpdate);
         res.status(201).send(bookItem);
     } catch (e) {
-        res.status(400).send(e.message);
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 
-bookItem.delete('/:id', authorization, async (req, res) => {
+bookItem.delete('/:id', authorization, async (req, res, next) => {
     try{
         
         if(req.user.role !== 'ADMIN'){
-            res.status(403).send();
-            return;
+            return next(new ForbiddenRequestError("request denied for delete book item"))
         }
 
         const bookItem = await getById(id);
         const status = bookItem.dataValues.status;
 
         if(status === 'LOANED'){
-            res.status(400).send("can't delete. book item is loaned.");
-            return;
+            return next(new ForbiddenRequestError("can't delete. book item is loaned"))
         }
 
         await removeById(id);
         res.status(200).send("book item removed successfully");
 
     } catch (e) {
-        res.status(400).send(e.message);
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 

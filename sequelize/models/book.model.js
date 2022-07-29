@@ -22,15 +22,15 @@ module.exports = (sequelize, DataTypes) => {
 			unique: true,
 		},
 		author: {
-			allowNull: true,
+			allowNull: false,
 			type: DataTypes.STRING
 		},
 		publisher: {
-			allowNull: true,
+			allowNull: false,
 			type: DataTypes.STRING
 		},
 		pageCount: {
-			allowNull: true,
+			allowNull: false,
 			type: DataTypes.INTEGER,
 			field: 'page_count'
 		}

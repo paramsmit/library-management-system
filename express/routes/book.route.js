@@ -1,117 +1,133 @@
 const express = require('express');
 const { authorization } = require('../auth/authorization');
 const { create, update, getById, removeById } = require('../services/book.service');
+const { createBookSchema } = require('./../validations/createBookSchema')
+const { updateBookSchema } = require('./../validations/updateBookSchema')
 
 const bookRouter = express.Router();
+
+const {
+    NotFoundError, 
+    DatabaseError, 
+    ForbiddenRequestError, 
+    BadRequestError
+} = require('./../errorHandling/errors');
+
+const { Validator } = require('express-json-validator-middleware');
+const { validate } = new Validator();
+
 
 // bookRouter.get('/', authorization, async (req, res) => {
 // 	try{} catch (e) {}
 // })
 
-bookRouter.get('/getById/:id', authorization, async (req , res) => {
+bookRouter.get('/getById/:id', authorization, async (req, res, next) => {
     try{
+
+        if(!req.params.id){
+            return next(new BadRequestError("book id is required "));
+        }
+
         const book = await getById(req.params.id);
         if(!book) {
-            res.status(404).send("cannot find the profile with the given book id");
+            return next(new NotFoundError("cannot find the book with the given id"));
         }
         const resbody = book.dataValues;
         res.status(200).send(resbody);
     } catch (e) {
-        throw e;
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 
-bookRouter.get('/getByIsbn/:isbn', authorization, async (req , res) => {
+bookRouter.get('/getByIsbn/:isbn', authorization, async (req, res, next) => {
     try{
+        
+        if(!req.params.isbn){
+            return next(new BadRequestError("book isbn is required"));
+        }
+        
         const book = await getByIsbn(req.params.isbn);
         if(!book) {
-            res.status(404).send("cannot find the book with the given book isbn");
+            return next(new NotFoundError("cannot find the book with the given book isbn"));
         }
         const resbody = book.dataValues;
         res.status(200).send(resbody);
     } catch (e) {
-        throw e;
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 
-bookRouter.get('/getByTitle/:title', authorization, async (req , res) => {
+bookRouter.get('/getByTitle/:title', authorization, async (req, res, next) => {
     try{
+
+        if(!req.params.title){
+            return next(new BadRequestError("book title is required"));
+        }
+
         const book = await getByTitle(req.params.title);
         if(!book) {
-            res.status(404).send("cannot find the book with the given book id");
+            return next(new NotFoundError("cannot find the book with the given title"));
         }
         const resbody = book.dataValues;
         res.status(200).send(resbody);
     } catch (e) {
-        throw e;
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 
 
 
-bookRouter.post('/', authorization, async (req, res) => {
-    try{
-		
-		if(req.user.role !== 'ADMIN'){
-			res.status(403).send();
-			return;
-		}
-		
-        const book = await create(req.body);
-        res.status(201).send({id : book.dataValues.id});
-    } catch (e) {
-        res.status(400).send(e.message);
-    }
-})
-
-bookRouter.put('/:id', authorization, async (req,res) => {
-	
-	if(req.user.role !== 'ADMIN'){
-		res.status(403).send();
-		return;
-	}
-
-	const fieldsToUpdate = {
-		isbn, 
-		title,
-		author,
-		publisher,
-		pageCount
-    } = req.body
-
-	const nonNullAbleFields = ["isbn", "title"];
-
-	for(field in nonNullAbleFields){
-		if(fieldsToUpdate[field] === null){
-			res.status(400).send(field + ' must not be null in the request');
-			return;
-		}
-	}
-
-    for (const [key, value] of Object.entries(fieldsToUpdate)) {
-        if(fieldsToUpdate[key] === undefined){
-            delete fieldsToUpdate[key]
+bookRouter
+.post('/',
+    authorization, 
+    (req, res, next) => {	
+        if(req.user.role !== 'ADMIN') return next(new ForbiddenRequestError("request denied to create book"))
+        return next();
+    }, 
+    validate({body: createBookSchema}), 
+    async (req, res, next) => {
+        try{
+            const book = await create(req.body);
+            res.status(201).send({id : book.dataValues.id});
+        } catch (e) {
+            return next(new DatabaseError("Internal Server Error"));
         }
     }
+)
 
-    try{
-        const book = await update(req.params.id, fieldsToUpdate);
-        res.status(201).send(book);
-    } catch (e) {
-        res.status(400).send(e.message);
+bookRouter
+.put('/:id', 
+    authorization,
+    (req, res, next) => {
+        if(req.user.role !== 'ADMIN'){
+            return next(new ForbiddenRequestError("request denied to update book"))
+        }
+        return next();
+    }, 
+    validate({body: updateBookSchema}),
+    async (req, res, next) => { 
+        try{
+            const book = await update(req.params.id, req.body);
+            res.status(201).send(book);
+        } catch (e) {
+            return next(new DatabaseError("Internal Server Error"));
+        }
     }
-})
+)
 
-bookRouter.delete('/:id', authorization, async (req, res) => {
+bookRouter.delete('/:id', authorization, async (req, res, next) => {
     try{
+
+        if(!req.params.title){
+            return next(new BadRequestError("book id is required"));
+        }
 
         const book = await getById(req.params.id);
         const bookItems = await book.getBookItems();
         
         for(const bookItem of bookItems){
             if(bookItem.dataValues.status == 'LOANED'){
-                res.status(403).send("can't delete the book when bookItem is owned");
-                return;
+                return next(new ForbiddenRequestError("can't delete the book when bookItem is owned"));
             }
         }
 
@@ -119,7 +135,7 @@ bookRouter.delete('/:id', authorization, async (req, res) => {
         res.status(200).send("book successfully deleted");
 
     } catch (e) {
-        throw e; 
+        return next(new DatabaseError("Internal Server Error"));
     }
 })
 
