@@ -51,6 +51,7 @@ accountRouter.post('/login', validate({body : loginAccountSchema}), async (req, 
         }
 
         const account = await getByUsername(creds.username);
+        console.log(account);
     
         if(!account){
             return next(new NotFoundError("can't find the user with the given username"));
@@ -64,9 +65,16 @@ accountRouter.post('/login', validate({body : loginAccountSchema}), async (req, 
 
         const token = jwt.sign({ id: account.dataValues.id, role: account.dataValues.role }, "secret_key");
         
-        res.cookie('access_token', token,  { expires: new Date(Date.now() + 3600000), httpOnly: true })
+        const profile = await account.getProfile();
+
+        // res.cookie('access_token', token,  { expires: new Date(Date.now() + 3600000), path: '/', httpOnly:true })
+        res.cookie('access_token', token,  { expires: new Date(Date.now() + 3600000) })
         .status(200)
-        .send("logged in successfully");
+        .send({
+            accountId : account.dataValues.id,
+            role : account.dataValues.role,
+            profileId: profile?.dataValues.id
+        });
 
     } catch (e) {
         return next(new DatabaseError("Internal Server Error"));

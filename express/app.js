@@ -11,6 +11,8 @@ const { ValidationError } = require('express-json-validator-middleware');
 
 const app = express();
 
+app.use(require('cors')({ origin:'http://localhost:3000', credentials:true }));
+// app.use(require('cors')());
 app.use(require('cookie-parser')());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

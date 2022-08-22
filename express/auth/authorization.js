@@ -7,7 +7,6 @@ function authorization(req, res, next){
     const token = req.cookies.access_token;
     
 	if (!token) {
-		console.log("token null")
 		return next(new ForbiddenRequestError("Please Login"));
 	}
 

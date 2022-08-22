@@ -15,5 +15,3 @@ newdate.setDate(date.getDate() + 30);
 console.log(date.toISOString());
 console.log(newdate.toISOString());
 
-
-

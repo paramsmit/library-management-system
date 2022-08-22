@@ -15,7 +15,7 @@ const createBookSchema = {
             type: "string"
         },
         pagecount: {
-            type: number
+            type: "number"
         },
     }
 }

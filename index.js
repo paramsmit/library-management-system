@@ -1,6 +1,6 @@
 const { app } = require('./express/app.js')
 
-const PORT = 3000;
+const PORT = 3001;
 app.listen(PORT, (e) => {
     if(!e)
         console.log("Server is Successfully Running, and App is listening on port "+ PORT)
