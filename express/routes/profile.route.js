@@ -77,6 +77,7 @@ profileRouter
             // pass account id in the body
             res.status(201).send({id : profile.dataValues.id});
         } catch (e) {
+            console.log(e);
             return next(new DatabaseError("Internal Server Error"));
         }
     }
@@ -101,6 +102,7 @@ profileRouter
 
         try{
             const profile = await update(req.params.id, fieldsToUpdate);
+            console.log(profile);
             res.status(201).send(profile);
         } catch (e) {
             return next(new DatabaseError("Internal Server Error"));

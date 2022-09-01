@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
 		},
 		contact: {
             allowNull: false,
-            type: DataTypes.INTEGER
+            type: DataTypes.BIGINT
         },
         email: {
             allowNull: false,

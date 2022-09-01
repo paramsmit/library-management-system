@@ -6,7 +6,8 @@ const updateProfileSchema = {
             nullable: false
         },
         contact: {
-            type: "number",
+            // type: "number",
+            type: "string",
             nullable: false
         },
         email: {

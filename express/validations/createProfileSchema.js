@@ -7,7 +7,8 @@ const createProfileSchema = {
             nullable: false
         },
         contact: {
-            type: "number",
+            // type: "number",
+            type: "string",
             nullable: false
         },
         email: {
@@ -16,6 +17,7 @@ const createProfileSchema = {
         },
         accountId: {
             type: "integer",
+            // type: "string",
             nullable: false
         }
     }
