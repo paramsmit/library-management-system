@@ -1,6 +1,6 @@
 const express = require('express');
 const { authorization } = require('../auth/authorization');
-const { create, update, getById, removeById } = require('../services/book.service');
+const { create, update, getById, removeById, getBooksByFuzzySearch } = require('../services/book.service');
 const { createBookSchema } = require('./../validations/createBookSchema')
 const { updateBookSchema } = require('./../validations/updateBookSchema')
 
@@ -19,6 +19,21 @@ const { validate } = new Validator();
 // bookRouter.get('/', authorization, async (req, res) => {
 // 	try{} catch (e) {}
 // })
+
+bookRouter.get('/autocomplete', authorization, async(req, res, next) => {
+    try {
+        const books = await getBooksByFuzzySearch(
+            req.query.searchBy, 
+            req.query.searchString, 
+            req.query.limit, 
+            req.query.pageNumber
+        );
+        
+        res.send(books);
+    } catch (e) {
+        return next(new DatabaseError("Internal Server Error"));
+    }   
+})
 
 bookRouter.get('/getById/:id', authorization, async (req, res, next) => {
     try{

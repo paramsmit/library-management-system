@@ -1,6 +1,24 @@
+const { sequelize } = require('../../sequelize');
+const { QueryTypes } = require('sequelize');
 const models = require('../../sequelize');
 
 async function get(){}
+
+async function getBooksByFuzzySearch(searchBy, searchString, limit, pageNumber) {
+    try{    
+        const offset = limit * pageNumber - limit;
+        const query = `select * from books order by LEVENSHTEIN(${searchBy}, '${searchString}') desc limit ${limit} offset ${offset};`
+        
+        // should be transactionsal 
+        // cost here when there are so many records
+        const books = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
+        const totalCount = await sequelize.query('select count(*) from books;',  { type: sequelize.QueryTypes.SELECT })
+        return {books, totalCount : totalCount[0].count} 
+    } catch (e){
+        console.log(e);
+        throw e;
+    }
+}
 
 async function removeById(id){
     try{
@@ -60,5 +78,6 @@ module.exports = {
     getByTitle,
     create,
     update,
-    removeById
+    removeById,
+    getBooksByFuzzySearch
 }
