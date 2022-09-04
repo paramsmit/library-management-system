@@ -18,7 +18,7 @@ const updateBookSchema = {
             nullable: false
         },
         pageCount: {
-            type: "string",
+            type: "integer",
             nullable: false
         }
     }

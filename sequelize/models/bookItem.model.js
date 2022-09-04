@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.ENUM('AVAILABLE', 'RESERVED', 'LOANED', 'LOST')
         }
-        
+		
 	});
 
 	bookItem.associate = (models) => {

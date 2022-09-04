@@ -4,6 +4,7 @@ const { create, update, getById, getByAccountId, removeById } = require('../serv
 
 const { createProfileSchema } = require('./../validations/createProfileSchema.js')
 const { updateProfileSchema } = require('./../validations/updateProfileSchema.js')
+const { getMyBooksSchema } = require('./../validations/getMyBooksSchema.js')
 
 const profileRouter = express.Router();
 
@@ -20,6 +21,41 @@ const { validate } = new Validator();
 // profileRouter.get('/', authorization, async (req, res) => {
 //     try{} catch (e) {}
 // })
+
+profileRouter.
+post('/mybooks',
+    authorization,
+    validate({body: getMyBooksSchema}),
+    async (req, res, next) => {
+        try{
+            const profile = await getById(req.body.profileId);
+            if(!profile) {
+                return next(new NotFoundError("cannot find the profile with the given id"));
+            }
+
+            const mybooks = []
+            const bookItems = await profile.getBookItems();
+            
+            for(const bookItem of bookItems){
+                
+                const book = await bookItem.getBook();
+                const borrowedDate = bookItem.dataValues.borrowedDate;
+                const dueDate = bookItem.dataValues.dueDate;
+                
+                mybooks.push({
+                    bookId : book.dataValues.id,
+                    bookTitle : book.dataValues.title, 
+                    borrowedDate : borrowedDate.getDate() + "-" + borrowedDate.getMonth() + "-"  + borrowedDate.getFullYear(),
+                    dueDate : dueDate.getDate() + "-" + dueDate.getMonth() + "-"  + dueDate.getFullYear(),
+                })
+            }
+            
+            res.status(200).send(mybooks);
+        } catch (e) {
+            return next(new DatabaseError("Internal Server Error"));
+        }
+    }
+)
 
 profileRouter
 .get('/:accountId',
@@ -65,6 +101,8 @@ profileRouter
         }
     }
 )
+
+
 
 profileRouter
 .post('/', 

@@ -32,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
 		pageCount: {
 			allowNull: false,
 			type: DataTypes.INTEGER,
-			field: 'page_count'
 		}
 	});
 

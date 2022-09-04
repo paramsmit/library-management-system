@@ -1,6 +1,6 @@
 const createBookSchema = {
     type: "object",
-    required: ["isbn", "title", "author", "publisher", "pagecount"],
+    required: ["isbn", "title", "author", "publisher", "pageCount"],
     properties : {
         isbn: {
             type: "string"
@@ -14,7 +14,7 @@ const createBookSchema = {
         publisher: {
             type: "string"
         },
-        pagecount: {
+        pageCount: {
             type: "number"
         },
     }

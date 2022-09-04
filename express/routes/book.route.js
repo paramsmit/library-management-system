@@ -16,14 +16,12 @@ const {
 const { Validator } = require('express-json-validator-middleware');
 const { validate } = new Validator();
 
-
 // bookRouter.get('/', authorization, async (req, res) => {
 // 	try{} catch (e) {}
 // })
 
 bookRouter.get('/getById/:id', authorization, async (req, res, next) => {
     try{
-
         if(!req.params.id){
             return next(new BadRequestError("book id is required "));
         }
@@ -87,9 +85,11 @@ bookRouter
     validate({body: createBookSchema}), 
     async (req, res, next) => {
         try{
+            console.log(req.body);
             const book = await create(req.body);
             res.status(201).send({id : book.dataValues.id});
         } catch (e) {
+            console.log(e);
             return next(new DatabaseError("Internal Server Error"));
         }
     }
@@ -107,7 +107,9 @@ bookRouter
     validate({body: updateBookSchema}),
     async (req, res, next) => { 
         try{
+            console.log(req.body)
             const book = await update(req.params.id, req.body);
+            console.log(book)
             res.status(201).send(book);
         } catch (e) {
             return next(new DatabaseError("Internal Server Error"));
