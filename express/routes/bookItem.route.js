@@ -1,6 +1,6 @@
 const express = require('express');
 const { authorization } = require('../auth/authorization');
-const { create, update, getById, removeById } = require('../services/bookItem.service');
+const { create, updateBookItem, getById, removeById } = require('../services/bookItem.service');
 
 const { createBookItemSchema } = require('./../validations/createBookItemSchema');
 const { updateBookItemSchema } = require('./../validations/updateBookItemSchema');
@@ -15,11 +15,7 @@ const {
     BadRequestError
 } = require('./../errorHandling/errors');
 
-const addDays = (date, days) => {
-    const newDate = new Date(date);
-    return newDate.setDate(newDate.getDate() + days);
-}
-
+const { addDays } = require('./../../util/date')
 const bookItem = express.Router();
 
 // implement when it is required
@@ -31,15 +27,11 @@ const bookItem = express.Router();
 bookItem.get('/getById/:id', authorization, async (req, res, next) => {
     try{
 
-        if(!req.params.id){
-            return next(new BadRequestError('required field id'));
-        }
+        if(!req.params.id) return next(new BadRequestError('required field id'));
 
         const bookItem = await getById(req.params.id);
         
-        if(!bookItem) {
-            return next(new NotFoundError("cannot find the bookItem with the given id"));
-        }
+        if(!bookItem) return next(new NotFoundError("cannot find the bookItem with the given id"));
 
         // check for bookId always
 
@@ -114,7 +106,7 @@ bookItem
     }
 
     try{
-        const bookItem = await update(req.params.id,fieldsToUpdate);
+        const bookItem = await updateBookItem(req.params.id,fieldsToUpdate);
         res.status(201).send(bookItem);
     } catch (e) {
         return next(new DatabaseError("Internal Server Error"));

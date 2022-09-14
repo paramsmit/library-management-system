@@ -10,6 +10,22 @@ async function removeById(id){
     }
 }
 
+async function getBookItemPossesedByUser(bookId, profileId, status){
+    try{
+        const bookItems = await models.bookItem.findAll({
+            where: {
+                "bookId": bookId, 
+                "profileId": profileId,
+                "status": status
+            }
+        })
+        return bookItems;
+    } catch (e) {
+        throw e;
+    }
+}
+
+
 async function getById(id){
     try{
         const bookItem = await models.bookItem.findByPk(id);
@@ -27,7 +43,7 @@ async function create(body){
     }
 }
 
-async function update(id, fieldsToUpdate){
+async function updateBookItem(id, fieldsToUpdate){
     try{
         return await models.bookItem.update(fieldsToUpdate, { where: { id: id } , returning: true} );
     } catch (e) {
@@ -39,6 +55,7 @@ module.exports = {
     get,
     getById,
     create,
-    update,
-    removeById
+    updateBookItem,
+    removeById,
+    getBookItemPossesedByUser
 }

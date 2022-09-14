@@ -1,5 +1,4 @@
 const { sequelize } = require('../../sequelize');
-const { QueryTypes } = require('sequelize');
 const models = require('../../sequelize');
 
 async function get(){}
@@ -7,13 +6,22 @@ async function get(){}
 async function getBooksByFuzzySearch(searchBy, searchString, limit, pageNumber) {
     try{    
         const offset = limit * pageNumber - limit;
-        const query = `select * from books order by LEVENSHTEIN(${searchBy}, '${searchString}') desc limit ${limit} offset ${offset};`
+        
+        const query = `select * from books 
+                        where SIMILARITY( METAPHONE(${searchBy},10), METAPHONE('${searchString}',10)) > 0.3
+                        order by  SIMILARITY( METAPHONE(${searchBy},10), METAPHONE('${searchString}',10)) 
+                        DESC limit ${limit} offset ${offset};`
+
+
+        const countQuery = `select count(*) from books where SIMILARITY(METAPHONE(${searchBy},10), METAPHONE('${searchString}',10)) > 0.3;`;
         
         // should be transactionsal 
         // cost here when there are so many records
+
         const books = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
-        const totalCount = await sequelize.query('select count(*) from books;',  { type: sequelize.QueryTypes.SELECT })
-        return {books, totalCount : totalCount[0].count} 
+        const totalCount = await sequelize.query(countQuery,  { type: sequelize.QueryTypes.SELECT })
+        return {items: books, totalCount : totalCount[0].count} 
+
     } catch (e){
         console.log(e);
         throw e;

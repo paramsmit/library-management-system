@@ -1,6 +1,6 @@
 const express = require('express');
 const { authorization } = require('../auth/authorization');
-const { create, update, getById, getByAccountId, removeById } = require('../services/profile.service');
+const { create, update, getProfileById, getByAccountId, removeById, getProfilesByFuzzySearch, getProfilesByContact } = require('../services/profile.service');
 
 const { createProfileSchema } = require('./../validations/createProfileSchema.js')
 const { updateProfileSchema } = require('./../validations/updateProfileSchema.js')
@@ -22,13 +22,30 @@ const { validate } = new Validator();
 //     try{} catch (e) {}
 // })
 
+profileRouter
+.get('/autocomplete', authorization, async(req, res, next) => {
+    try {
+        const profiles = await getProfilesByFuzzySearch(
+            req.query.searchBy, 
+            req.query.searchString, 
+            req.query.limit, 
+            req.query.pageNumber
+        );
+        
+        res.send(profiles);
+    } catch (e) {
+        return next(new DatabaseError("Internal Server Error"));
+    }   
+})
+
+
 profileRouter.
 post('/mybooks',
     authorization,
     validate({body: getMyBooksSchema}),
     async (req, res, next) => {
         try{
-            const profile = await getById(req.body.profileId);
+            const profile = await getProfileById(req.body.profileId);
             if(!profile) {
                 return next(new NotFoundError("cannot find the profile with the given id"));
             }
@@ -52,6 +69,7 @@ post('/mybooks',
             
             res.status(200).send(mybooks);
         } catch (e) {
+            console.log(e);
             return next(new DatabaseError("Internal Server Error"));
         }
     }
@@ -84,24 +102,48 @@ profileRouter
     authorization, 
     async (req, res, next) => {
         try{
-            
-            if(!req.params.id) {
-                return next(new BadRequestError('profile id is required'));
+            if(!req.params.id) return next(new BadRequestError('profile id is required'));
+            // null check 
+            const profile = await getProfileById(req.params.id);
+            if(!profile) return next(new NotFoundError("cannot find the profile with the given id"));
+
+            let bookItems = await profile.getBookItems();
+            let bookItemResponse = [];
+
+            for(let bookItem of bookItems){
+                const borrowedDate = bookItem.dataValues.borrowedDate;
+                const dueDate = bookItem.dataValues.dueDate;
+                const book = await bookItem.getBook();
+                bookItemResponse.push({
+                    ...bookItem.dataValues, 
+                    bookName: book.dataValues.title,
+                    borrowedDate : borrowedDate.getDate() + "-" + borrowedDate.getMonth() + "-"  + borrowedDate.getFullYear(),
+                    dueDate : dueDate.getDate() + "-" + dueDate.getMonth() + "-"  + dueDate.getFullYear(),
+                });    
             }
 
-            // null check 
-            const profile = await getById(req.params.id);
-            if(!profile) {
-                return next(new NotFoundError("cannot find the profile with the given id"));
-            }
-            const resbody = profile.dataValues;
-            res.status(200).send(resbody);
+            res.status(200).send({...profile.dataValues, bookItems: bookItemResponse});
         } catch (e) {
             return next(new DatabaseError("Internal Server Error"));
         }
     }
 )
 
+profileRouter.get('/getByContact/:contact', authorization, 
+async (req, res, next) => {
+        try{
+            if(!req.params.contact) return next(new BadRequestError('contact is required'));
+
+            const profiles = await getProfilesByContact(req.params.contact);
+            
+            if(profiles.length === 0) return next(new NotFoundError("cannot find the profile with the given contact"));
+            
+            res.status(200).send(profiles);
+        } catch (e) {
+            return next(new DatabaseError("Internal Server Error"));
+        }
+    }
+)
 
 
 profileRouter
