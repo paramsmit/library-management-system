@@ -264,7 +264,7 @@ bookRouter
 bookRouter.delete('/:id', authorization, async (req, res, next) => {
     try{
 
-        if(!req.params.title){
+        if(!req.params.id){
             return next(new BadRequestError("book id is required"));
         }
 
@@ -273,7 +273,7 @@ bookRouter.delete('/:id', authorization, async (req, res, next) => {
         
         for(const bookItem of bookItems){
             if(bookItem.dataValues.status == 'LOANED'){
-                return next(new ForbiddenRequestError("can't delete the book when bookItem is owned"));
+                return next(new ForbiddenRequestError("can't delete the book when bookItem is Loaned"));
             }
         }
 

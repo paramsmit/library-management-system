@@ -120,17 +120,22 @@ bookItem.delete('/:id', authorization, async (req, res, next) => {
             return next(new ForbiddenRequestError("request denied for delete book item"))
         }
 
-        const bookItem = await getById(id);
+        if(!req.params.id){
+            return next(new BadRequestError("required field id"));
+        }
+
+        const bookItem = await getById(req.params.id);
         const status = bookItem.dataValues.status;
 
         if(status === 'LOANED'){
             return next(new ForbiddenRequestError("can't delete. book item is loaned"))
         }
 
-        await removeById(id);
-        res.status(200).send("book item removed successfully");
+        await removeById(req.params.id);
+        res.status(200).send("book Item removed successfully!");
 
     } catch (e) {
+        console.log(e);
         return next(new DatabaseError("Internal Server Error"));
     }
 })
