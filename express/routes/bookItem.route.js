@@ -2,6 +2,8 @@ const express = require('express');
 const { authorization } = require('../auth/authorization');
 const { create, updateBookItem, getById, removeById } = require('../services/bookItem.service');
 
+const { getById:getBookById } = require('../services/book.service')
+
 const { createBookItemSchema } = require('./../validations/createBookItemSchema');
 const { updateBookItemSchema } = require('./../validations/updateBookItemSchema');
 
@@ -53,7 +55,17 @@ post('/',
                 return next(new ForbiddenRequestError("request denied for create book item"))
             }
 
-            const bookItem = await create(req.body);
+            const book = await getBookById(req.body.bookId);
+            
+            if(!book) return next(new BadRequestError("book doesn't exist with the given ID"));
+            
+            const createBookItemBody = {
+                bookId: req.body.bookId,
+                status: "AVAILABLE",
+                profileId: null,
+            }
+
+            const bookItem = await create(createBookItemBody);
             res.status(201).send({id : bookItem.dataValues.id});
         } catch (e) {
             return next(new DatabaseError("Internal Server Error"));
